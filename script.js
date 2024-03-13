@@ -10,7 +10,7 @@ const gameboard = ((n) => {
             // Create inner array for each row
             var _colArr = [];
             for (c = r; c < r+n; c++) {
-                _colArr.push(c);
+                _colArr.push(0);
             }
             // Add inner array into outer array
             _gridArr.push(_colArr);
@@ -41,7 +41,6 @@ const gameboard = ((n) => {
         }
     };
 
-
     // Helper
     function displayGrids() {
         console.log(_gridArr);
@@ -49,39 +48,57 @@ const gameboard = ((n) => {
 
     // CHECK WINNERS(3x3~5x5) rows, cols, diag, tie
     // n = 3, _grids = 9
-    // 0 1 2
-    // 3 4 5
-    // 6 7 8
+    //   0 1 2
+    // 0 ? ? ?
+    // 1 ? ? ?
+    // 2 ? ? ?
 
     // n = 4, _grids = 16
-    // 0 1 2 3
-    // 4 5 6 7
-    // 8 9 10 11
-    // 12 13 14 15
+    //   0 1 2 3
+    // 0 ? ? ? ?
+    // 1 ? ? ? ?
+    // 2 ? ? ? ?
+    // 3 ? ? ? ?
 
     // n = 5, _grids = 25
-    // 0 1 2 3 4
-    // 5 6 7 8 9
-    // 10 11 12 13 14 
-    // 15 16 17 18 19
-    // 20 21 22 23 24
+    //   0 1 2 3 4
+    // 0 ? ? ? ? ?
+    // 1 ? ? ? ? ? 
+    // 2 ? ? ? ? ? 
+    // 3 ? ? ? ? ?
+    // 4 ? ? ? ? ?
 
-    // Check if there is winner in row, return -1, 0 (no result), 1
-    // function checkRowWinner() {
-    //     let winner = false;
-    //     for (r = 0; r < n; r++) {
-    //         for (c = r; r < _grids; r+=n) {
-    //             if (_gridArr[])
-            
-    //         } 
-    //     }
+    // Check if there is Column winner (horizantal), return -1, 0 (no result), 1
+    function checkColWinner() {
+        for (r = 0; r < n; r++) {
+            let cols = [];
+            for (c = 0; c < n; c++) {
+                cols.push(_gridArr[r][c]);
+            }
+            if (cols.every((val) => val == -1)) return -1;
+            if (cols.every((val) => val == 1)) return 1;
+        }
 
-    // }
+        return 0;
+    }
 
-    return {_grids, createGrids, fillGrid, getGrid, clearGrids, displayGrids};    
+    function checkRowWinner() {
+        for (c = 0; c < n; c++) {
+            let rows = [];
+            for (r = 0; r < n; r++) {
+                rows.push(_gridArr[r][c]);
+            }
+            if (rows.every((val) => val == -1)) return -1;
+            if (rows.every((val) => val == 1)) return 1;
+        }
+
+        return 0;
+    }
+
+    return {_grids, createGrids, fillGrid, getGrid, clearGrids, displayGrids, checkColWinner, checkRowWinner};    
 });
 
-const game = gameboard(5);
+const game = gameboard(3);
 
 game.createGrids();
 game.displayGrids();
