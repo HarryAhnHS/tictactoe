@@ -25,6 +25,24 @@ img {
     flex: 1;
 }
 
+/* Gameboard Grid */
+.content {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid blue;
+}
+
+.gameboard {
+    display: flex;
+    border: 3px solid #e63946;
+    transition: 0.3s;
+    flex-wrap: wrap;
+    height: 500px;
+    width: 500px;
+}
+
 /* Footer */
 .footer {
     background-color: #eeeeee;

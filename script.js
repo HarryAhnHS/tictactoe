@@ -1,17 +1,5 @@
-// Player object
-const player = (marker) => {
-    var _marker = marker;
-    function getMarker() {
-        return _marker;
-    }
-    function setMarker() {
-        _marker = marker;
-    }
-    return {getMarker, setMarker};
-};
-
 // Factory function to create grid and players of n x n (from 3 to 5)
-const gameboard = ((n) => {
+function gameboard(n) {
 
     const grids = n*n; // Total num of grids for game
     
@@ -28,7 +16,6 @@ const gameboard = ((n) => {
             // Add inner array into outer array
             _gridArr.push(_colArr);
         }
-
     };
 
     function setGrid(marker,r,c) {
@@ -50,14 +37,6 @@ const gameboard = ((n) => {
             return "Invalid Range";
         }
     }
-
-    function clearGrids() {
-        for (r = 0; r < n; r++) {
-            for (c = 0; c < n; c++) {
-                _gridArr[r][c] = 0;
-            }
-        }
-    };
 
     // Helper
     function displayGrids() {
@@ -158,65 +137,162 @@ const gameboard = ((n) => {
             createGrids, 
             setGrid, 
             getGrid, 
-            clearGrids, 
             displayGrids, 
             checkColWinner, 
             checkRowWinner, 
             checkDiagWinnerTLBR, 
             checkDiagWinnerTRBL,
             checkTie};    
-});
+};
 
-// Game controller
-const gameRunner = (n) => {
+// Factory Function to create Player object
+function player(marker) {
+    var _marker = marker;
+    function getMarker() {
+        return _marker;
+    }
+    function setMarker() {
+        _marker = marker;
+    }
+    return {getMarker, setMarker};
+};
+
+// Game controller module
+const gameRunner = (() => {
         
     const _player1 = player(-1);
     const _player2 = player(1);
-    const _playerAI = player(1);
 
     const getPlayer1 = () => _player1;
     const getPlayer2 = () => _player2;
-    const getPlayerAI = () => _playerAI;
 
-    const game = gameboard(n);
-    
-    // Initialize gameboard with n*n grids
-    function initGame() {
-        game.createGrids();
+    var _game = null; 
+
+    function initGame(n) {
+        // Take n input and create grids
+        _game = gameboard(n);
+        _game.createGrids();
+    };
+
+
+    function logGame() {
+        _game.displayGrids();
     }
 
-    // Restart game
-    function restart() {
-        game.clearGrids();
-    }
 
     function checkResult() {
-        // Check for winner/tie
-        if (game.checkColWinner()) return game.checkColWinner();
-        if (game.checkRowWinner()) return game.checkRowWinner(); 
-        if (game.checkDiagWinnerTLBR()) return game.checkDiagWinnerTLBR();
-        if (game.checkDiagWinnerTRBL()) return game.checkDiagWinnerTRBL();
-        if (game.checkTie()) return 2;
+        // Check for winner/tie, return false otherwise
+        if (_game.checkColWinner()) return _game.checkColWinner();
+        if (_game.checkRowWinner()) return _game.checkRowWinner(); 
+        if (_game.checkDiagWinnerTLBR()) return _game.checkDiagWinnerTLBR();
+        if (_game.checkDiagWinnerTRBL()) return _game.checkDiagWinnerTRBL();
+        if (_game.checkTie()) return 2;
 
         return 0;
     }
 
     // Each round of play 
     function stepPlayer1(r,c) {
-    
-    
-
-
-
-        
-
+        if (!checkResult()) {
+            _game.setGrid(_player1.getMarker,r,c);
+        }
     }
 
+    function stepPlayer2(r,c) {
+        if (!checkResult()) {
+            _game.setGrid(_player2.getMarker,r,c);
+        }
+    }
+
+    return {
+            getPlayer1,
+            getPlayer2,
+            initGame,
+            logGame,
+            checkResult,
+            stepPlayer1,
+            stepPlayer2,
+            };
+})();
 
 
+// Main exec module
+const displayGame = (() => {
+    // Take input for n
+    // Create GameRunner instance with n row
 
+    // Defaults
+    let _n = 3; // Number of rows/columns 
+    let _m = 0; // Game Mode - 0 (pvp), 1 (easy), 2 (medium), 3 (hard), 4 (impossible), 5(random)
 
+    // Prepare game
+    const prepGame = (() => {
+        gameRunner.initGame(_n);
+        setGrids();
+    })();
+
+    // Display n by n grid 
+    function setGrids() {
+        let gameboard = document.querySelector(".gameboard");
+        gameboard.innerHTML = ""; // Clear existing
+        for (i = 0; i < _n*_n; i++) {
+            const gridUnit = document.createElement('div');
+            gridUnit.classList.add('grid-unit');
     
+            gridUnit.style.width = `${100/_n}%`;
+            gridUnit.style.height = `${100/_n}%`;
+            gridUnit.style.flex = 'auto';
+            gridUnit.style['background-color'] = 'white';
+            gridUnit.style['outline'] = '1px solid black';
+    
+            gameboard.appendChild(gridUnit);
+        };
+    };
 
 
-};
+    // HANDLING INPUT CHANGES IN GRID SIZE AND MODE
+
+    // Set number of rows/columns based on input
+    const setN = (() => {
+        const range = document.querySelector("#num-grids");
+        range.value = 3; // Set default size
+        
+        const rangeFeedback = document.querySelector("#num-grids-feedback");
+        rangeFeedback.textContent = "3 X 3" // Set default
+    
+        range.addEventListener('input', (e) => {
+            rangeFeedback.textContent = `${e.target.value} X ${e.target.value}`;
+            _n = e.target.value;
+            setGrids();
+        })
+    })();
+
+    // Set gamemode based on input
+    const setMode = (() => {
+        const mode = document.querySelector("#game-mode");
+        mode.addEventListener('change', (e) => {
+            _m = e.target.value;
+        });
+    })();
+
+
+
+
+
+
+
+
+
+    // Take input for 1v1 or against AI or against Random
+
+    return {
+            setGrids,
+            setN,
+            setMode,
+
+            }
+
+})();
+
+
+
