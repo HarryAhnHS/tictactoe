@@ -1,12 +1,25 @@
-// Factory function to create grid of n x n (from 3 to 5)
+// Player object
+const player = (marker) => {
+    var _marker = marker;
+    function getMarker() {
+        return _marker;
+    }
+    function setMarker() {
+        _marker = marker;
+    }
+    return {getMarker, setMarker};
+};
+
+// Factory function to create grid and players of n x n (from 3 to 5)
 const gameboard = ((n) => {
-    const _grids = n*n; // Total num of grids for game
+
+    const grids = n*n; // Total num of grids for game
     
     var _gridArr = []; // 2D Array to hold game
 
     // Initialize grid as 2D array filled with 0
     function createGrids() {
-        for (r = 0; r < _grids; r+=n) {
+        for (r = 0; r < grids; r+=n) {
             // Create inner array for each row
             var _colArr = [];
             for (c = r; c < r+n; c++) {
@@ -18,10 +31,15 @@ const gameboard = ((n) => {
 
     };
 
-    function fillGrid(player,r,c) {
+    function setGrid(marker,r,c) {
         if (_gridArr[r][c] == 0) {
-            _gridArr[r][c] = player;
+            _gridArr[r][c] = marker;
         }
+        else {
+            console.log("Already filled.")
+            return false;
+        }
+        return true;
     };
 
     function getGrid(r,c) {
@@ -47,20 +65,20 @@ const gameboard = ((n) => {
     }
 
     // CHECK WINNERS(3x3~5x5) rows, cols, diag, tie
-    // n = 3, _grids = 9
+    // n = 3, grids = 9
     //   0 1 2
     // 0 ? ? ?
     // 1 ? ? ?
     // 2 ? ? ?
 
-    // n = 4, _grids = 16
+    // n = 4, grids = 16
     //   0 1 2 3
     // 0 ? ? ? ?
     // 1 ? ? ? ?
     // 2 ? ? ? ?
     // 3 ? ? ? ?
 
-    // n = 5, _grids = 25
+    // n = 5, grids = 25
     //   0 1 2 3 4
     // 0 ? ? ? ? ?
     // 1 ? ? ? ? ? 
@@ -118,23 +136,87 @@ const gameboard = ((n) => {
         return 0;
     }
 
-    return {_grids, createGrids, fillGrid, getGrid, clearGrids, displayGrids, checkColWinner, checkRowWinner, checkDiagWinnerTLBR, checkDiagWinnerTRBL};    
+    function checkTie() {
+        let check = [];
+        for (r = 0; r < n; r++) {
+            for (c = 0; c < n; c++) {
+                check.push(_gridArr[r][c])
+            }
+        }
+
+        // If every grid is filled and no winners
+        if (check.every((val) => val != 0)) {
+            if (!checkRowWinner() && !checkColWinner() && !checkDiagWinnerTLBR() && !checkDiagWinnerTRBL()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    return {grids,
+            createGrids, 
+            setGrid, 
+            getGrid, 
+            clearGrids, 
+            displayGrids, 
+            checkColWinner, 
+            checkRowWinner, 
+            checkDiagWinnerTLBR, 
+            checkDiagWinnerTRBL,
+            checkTie};    
 });
 
-const game = gameboard(3);
+// Game controller
+const gameRunner = (n) => {
+        
+    const _player1 = player(-1);
+    const _player2 = player(1);
+    const _playerAI = player(1);
 
-game.createGrids();
-game.displayGrids();
+    const getPlayer1 = () => _player1;
+    const getPlayer2 = () => _player2;
+    const getPlayerAI = () => _playerAI;
 
-
-const player = (marker) => {
-    var _marker = marker;
-    function getMarker() {
-        return _marker;
+    const game = gameboard(n);
+    
+    // Initialize gameboard with n*n grids
+    function initGame() {
+        game.createGrids();
     }
-    function setMarker() {
-        _marker = marker;
+
+    // Restart game
+    function restart() {
+        game.clearGrids();
     }
-    return {getMarker, setMarker};
+
+    function checkResult() {
+        // Check for winner/tie
+        if (game.checkColWinner()) return game.checkColWinner();
+        if (game.checkRowWinner()) return game.checkRowWinner(); 
+        if (game.checkDiagWinnerTLBR()) return game.checkDiagWinnerTLBR();
+        if (game.checkDiagWinnerTRBL()) return game.checkDiagWinnerTRBL();
+        if (game.checkTie()) return 2;
+
+        return 0;
+    }
+
+    // Each round of play 
+    function stepPlayer1(r,c) {
+    
+    
+
+
+
+        
+
+    }
+
+
+
+
+
+    
+
+
 };
-
