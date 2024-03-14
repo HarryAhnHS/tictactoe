@@ -68,7 +68,7 @@ const gameboard = ((n) => {
     // 3 ? ? ? ? ?
     // 4 ? ? ? ? ?
 
-    // Check if there is Column winner (horizantal), return -1, 0 (no result), 1
+    // Check if there is winner, return -1, 0 (no result), or 1
     function checkColWinner() {
         for (r = 0; r < n; r++) {
             let cols = [];
@@ -95,19 +95,36 @@ const gameboard = ((n) => {
         return 0;
     }
 
-    return {_grids, createGrids, fillGrid, getGrid, clearGrids, displayGrids, checkColWinner, checkRowWinner};    
+    function checkDiagWinnerTLBR() {
+        let check = [];
+        for (r = 0; r < n; r++) {
+            check.push(_gridArr[r][r]);
+        }
+        if (check.every((val) => val == -1)) return -1;
+        if (check.every((val) => val == 1)) return 1;
+
+        return 0;
+    }
+
+    function checkDiagWinnerTRBL() {
+        let check = [];
+        for (r = 0; r < n; r++) {
+            check.push(_gridArr[r][n-r-1]);
+        }
+
+        if (check.every((val) => val == -1)) return -1;
+        if (check.every((val) => val == 1)) return 1;
+
+        return 0;
+    }
+
+    return {_grids, createGrids, fillGrid, getGrid, clearGrids, displayGrids, checkColWinner, checkRowWinner, checkDiagWinnerTLBR, checkDiagWinnerTRBL};    
 });
 
 const game = gameboard(3);
 
 game.createGrids();
 game.displayGrids();
-
-// console.log(game.getGrid(4,4));
-// console.log(game.getGrid(1,4));
-// console.log(game.getGrid(0,1));
-// console.log(game.getGrid(5,1));
-// console.log(game.getGrid(6,6));
 
 
 const player = (marker) => {
