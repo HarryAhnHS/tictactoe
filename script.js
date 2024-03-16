@@ -261,6 +261,9 @@ const displayGame = (() => {
         displayGrids();
         let htmlgrids = document.querySelectorAll(".grid-unit");
         
+        const modal = document.querySelector(".result");
+        const result = document.querySelector(".result-text");
+        
         htmlgrids.forEach( (grid) => {
             grid.addEventListener('click',() => {
                 console.log(gameRunner.getPlayer1().getActive());
@@ -298,18 +301,33 @@ const displayGame = (() => {
                 if (gameRunner.checkResult() != 0) {
                     if (gameRunner.checkResult() == 2) {
                         console.log("Tie");
-                        
-                        // Reset game
+
+                        modal.showModal();
+                        result.textContent = "It's a tie."
                     }
                     else {
                         console.log(`${gameRunner.checkResult()} wins`);
 
-                        // Reset game
+                        modal.showModal();
+                        result.textContent = `${gameRunner.checkResult()} wins`;
                     }
                 }
             });
         });
     };
+
+    const restartGame = (() => {
+        const restart = document.querySelector("#restart");
+        
+        restart.addEventListener('click', ()=> {
+
+            const modal = document.querySelector(".result");
+            // Call the built-in 'close' method to close the modal
+            modal.close();
+
+            setGame();
+        })
+    })();
 
 
     // Convert 1D index into 2D [r,c] indices

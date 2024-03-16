@@ -25,6 +25,11 @@ img {
     flex: 1;
 }
 
+/* Result */
+dialog::backdrop {
+    background: rgb(255,255,255,0.6);
+  }
+
 /* Gameboard Grid */
 .content {
     width: 100%;
