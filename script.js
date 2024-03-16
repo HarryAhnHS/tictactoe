@@ -7,26 +7,24 @@ function gameboard(n) {
 
     // Initialize grid as 2D array filled with 0
     function createGrids() {
-        for (r = 0; r < grids; r+=n) {
+        _gridArr = []; // Initialize as empty 
+        
+        for (let r = 0; r < parseInt(grids); r+=parseInt(n)) {
             // Create inner array for each row
             var _colArr = [];
-            for (c = r; c < r+n; c++) {
+            for (let c = r; c < r+parseInt(n); c++) {
                 _colArr.push(0);
+                console.log(`r = ${r} | c = ${c}`)
             }
+            
             // Add inner array into outer array
             _gridArr.push(_colArr);
+            console.log(`pushed ${_colArr} into ${_gridArr}`)
         }
     };
 
     function setGrid(marker,r,c) {
-        if (_gridArr[r][c] == 0) {
-            _gridArr[r][c] = marker;
-        }
-        else {
-            console.log("Already filled.")
-            return false;
-        }
-        return true;
+        _gridArr[r][c] = marker;
     };
 
     function getGrid(r,c) {
@@ -38,10 +36,9 @@ function gameboard(n) {
         }
     }
 
-    // Helper
-    function displayGrids() {
+    function logGridArr() {
         console.log(_gridArr);
-    }
+    };
 
     // CHECK WINNERS(3x3~5x5) rows, cols, diag, tie
     // n = 3, grids = 9
@@ -137,7 +134,7 @@ function gameboard(n) {
             createGrids, 
             setGrid, 
             getGrid, 
-            displayGrids, 
+            logGridArr,
             checkColWinner, 
             checkRowWinner, 
             checkDiagWinnerTLBR, 
@@ -148,13 +145,20 @@ function gameboard(n) {
 // Factory Function to create Player object
 function player(marker) {
     var _marker = marker;
+    var _active = false;
     function getMarker() {
         return _marker;
     }
     function setMarker() {
         _marker = marker;
     }
-    return {getMarker, setMarker};
+    function getActive() {
+        return _active;
+    }
+    function setActive(bool) {
+        _active = bool;
+    }
+    return {getMarker, setMarker, getActive, setActive};
 };
 
 // Game controller module
@@ -162,11 +166,17 @@ const gameRunner = (() => {
         
     const _player1 = player(-1);
     const _player2 = player(1);
+    
+    // Boolean defaults for active, player1 always starts
+    _player1.setActive(true);
+    _player2.setActive(false);
 
-    const getPlayer1 = () => _player1;
-    const getPlayer2 = () => _player2;
+    function getPlayer1() { return _player1 };
+    function getPlayer2() { return _player2 };
 
     var _game = null; 
+
+    function getGameboard() {return _game};
 
     function initGame(n) {
         // Take n input and create grids
@@ -176,7 +186,7 @@ const gameRunner = (() => {
 
 
     function logGame() {
-        _game.displayGrids();
+        _game.logGridArr();
     }
 
 
@@ -193,20 +203,17 @@ const gameRunner = (() => {
 
     // Each round of play 
     function stepPlayer1(r,c) {
-        if (!checkResult()) {
-            _game.setGrid(_player1.getMarker,r,c);
-        }
+        _game.setGrid(_player1.getMarker(),r,c);
     }
 
     function stepPlayer2(r,c) {
-        if (!checkResult()) {
-            _game.setGrid(_player2.getMarker,r,c);
-        }
+        _game.setGrid(_player2.getMarker(),r,c);
     }
 
     return {
             getPlayer1,
             getPlayer2,
+            getGameboard,
             initGame,
             logGame,
             checkResult,
@@ -225,29 +232,90 @@ const displayGame = (() => {
     let _n = 3; // Number of rows/columns 
     let _m = 0; // Game Mode - 0 (pvp), 1 (easy), 2 (medium), 3 (hard), 4 (impossible), 5(random)
 
-    // Prepare game
-    const prepGame = (() => {
-        gameRunner.initGame(_n);
-        setGrids();
-    })();
+    // Main
+    setGame(); 
 
     // Display n by n grid 
-    function setGrids() {
+    function displayGrids() {
         let gameboard = document.querySelector(".gameboard");
         gameboard.innerHTML = ""; // Clear existing
+
+        // Add n*n grids into container, assign each an id from 0 to n*n-1
         for (i = 0; i < _n*_n; i++) {
             const gridUnit = document.createElement('div');
             gridUnit.classList.add('grid-unit');
+            gridUnit.id = i; // assign each an id from 0 to n*n-1
     
             gridUnit.style.width = `${100/_n}%`;
             gridUnit.style.height = `${100/_n}%`;
             gridUnit.style.flex = 'auto';
-            gridUnit.style['background-color'] = 'white';
             gridUnit.style['outline'] = '1px solid black';
     
             gameboard.appendChild(gridUnit);
         };
     };
+
+
+    function setGame() {
+        gameRunner.initGame(_n);
+        displayGrids();
+        let htmlgrids = document.querySelectorAll(".grid-unit");
+        
+        htmlgrids.forEach( (grid) => {
+            grid.addEventListener('click',() => {
+                console.log(gameRunner.getPlayer1().getActive());
+                console.log(gameRunner.getPlayer2().getActive());
+
+                if (gameRunner.getPlayer1().getActive()) {
+                    if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id)[0],convertIdxtoRC(grid.id)[1]) == 0) {
+
+                        gameRunner.stepPlayer1(convertIdxtoRC(grid.id)[0],convertIdxtoRC(grid.id)[1]);
+                        grid.textContent = 'X';
+                    
+                        gameRunner.getPlayer1().setActive(false);
+                        gameRunner.getPlayer2().setActive(true);
+                    }
+                    else {
+                        console.log("Already filled. Choose different grid.")
+                    }
+                }
+                else if (gameRunner.getPlayer2().getActive()) {
+                    if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id)[0],convertIdxtoRC(grid.id)[1]) == 0) {
+                        
+                        gameRunner.stepPlayer2(convertIdxtoRC(grid.id)[0],convertIdxtoRC(grid.id)[1]);
+                        grid.textContent = 'O';
+
+                        gameRunner.getPlayer2().setActive(false);
+                        gameRunner.getPlayer1().setActive(true);
+                    }
+                    else {
+                        console.log("Already filled. Choose different grid.")
+                    }
+                }  
+                gameRunner.logGame();
+
+                // Check for winner after each step
+                if (gameRunner.checkResult() != 0) {
+                    if (gameRunner.checkResult() == 2) {
+                        console.log("Tie");
+                        
+                        // Reset game
+                    }
+                    else {
+                        console.log(`${gameRunner.checkResult()} wins`);
+
+                        // Reset game
+                    }
+                }
+            });
+        });
+    };
+
+
+    // Convert 1D index into 2D [r,c] indices
+    function convertIdxtoRC(i) {
+        return [Math.floor(i / _n), i % _n];
+    }
 
 
     // HANDLING INPUT CHANGES IN GRID SIZE AND MODE
@@ -262,8 +330,8 @@ const displayGame = (() => {
     
         range.addEventListener('input', (e) => {
             rangeFeedback.textContent = `${e.target.value} X ${e.target.value}`;
-            _n = e.target.value;
-            setGrids();
+            _n = parseInt(e.target.value);
+            setGame();
         })
     })();
 
@@ -271,14 +339,10 @@ const displayGame = (() => {
     const setMode = (() => {
         const mode = document.querySelector("#game-mode");
         mode.addEventListener('change', (e) => {
-            _m = e.target.value;
+            _m = parseInt(e.target.value);
+            setGame();
         });
     })();
-
-
-
-
-
 
 
 
@@ -286,13 +350,14 @@ const displayGame = (() => {
     // Take input for 1v1 or against AI or against Random
 
     return {
-            setGrids,
+        
+            setGame,
+            displayGrids,
+            
+            convertIdxtoRC,
+
             setN,
             setMode,
+            };
 
-            }
-
-})();
-
-
-
+})()

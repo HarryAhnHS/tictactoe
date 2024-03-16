@@ -43,6 +43,21 @@ img {
     width: 500px;
 }
 
+.grid-unit {
+    background-color: white;
+
+    font-size: 32px;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.grid-unit:hover, 
+.grid-unit:focus {
+    background-color: gray;
+}
+
 /* Footer */
 .footer {
     background-color: #eeeeee;
