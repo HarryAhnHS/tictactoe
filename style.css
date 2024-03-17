@@ -34,11 +34,41 @@ dialog::backdrop {
 .content {
     width: 100%;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     border: 1px solid blue;
 }
 
+/* Header */
+.gameboard-head {
+    width: 500px;
+    display: flex;
+    align-items: center;
+}
+
+.head-x {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 50%;
+}
+
+.head-o {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 50%;
+
+}
+
+.player-active {
+    outline: 2px solid red;
+
+}
+ 
 .gameboard {
     display: flex;
     border: 3px solid #e63946;

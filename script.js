@@ -5,6 +5,10 @@ function gameboard(n) {
     
     var _gridArr = []; // 2D Array to hold game
 
+    function getN() {
+        return n;
+    }
+
     // Initialize grid as 2D array filled with 0
     function createGrids() {
         _gridArr = []; // Initialize as empty 
@@ -13,7 +17,7 @@ function gameboard(n) {
             // Create inner array for each row
             var _colArr = [];
             for (let c = r; c < r+parseInt(n); c++) {
-                _colArr.push(0);
+                _colArr.push("");
                 console.log(`r = ${r} | c = ${c}`)
             }
             
@@ -40,6 +44,10 @@ function gameboard(n) {
         console.log(_gridArr);
     };
 
+    function getGridArr() {
+        return _gridArr;
+    };
+
     // CHECK WINNERS(3x3~5x5) rows, cols, diag, tie
     // n = 3, grids = 9
     //   0 1 2
@@ -62,15 +70,15 @@ function gameboard(n) {
     // 3 ? ? ? ? ?
     // 4 ? ? ? ? ?
 
-    // Check if there is winner, return -1, 0 (no result), or 1
+    // Check if there is winner, return 'X, 0 (no result), or 'O
     function checkColWinner() {
         for (r = 0; r < n; r++) {
             let cols = [];
             for (c = 0; c < n; c++) {
                 cols.push(_gridArr[r][c]);
             }
-            if (cols.every((val) => val == -1)) return -1;
-            if (cols.every((val) => val == 1)) return 1;
+            if (cols.every((val) => val == 'X')) return 'X';
+            if (cols.every((val) => val == 'O')) return 'O';
         }
 
         return 0;
@@ -82,8 +90,8 @@ function gameboard(n) {
             for (r = 0; r < n; r++) {
                 rows.push(_gridArr[r][c]);
             }
-            if (rows.every((val) => val == -1)) return -1;
-            if (rows.every((val) => val == 1)) return 1;
+            if (rows.every((val) => val =='X')) return 'X';
+            if (rows.every((val) => val == 'O')) return 'O';
         }
 
         return 0;
@@ -94,8 +102,8 @@ function gameboard(n) {
         for (r = 0; r < n; r++) {
             check.push(_gridArr[r][r]);
         }
-        if (check.every((val) => val == -1)) return -1;
-        if (check.every((val) => val == 1)) return 1;
+        if (check.every((val) => val == 'X')) return 'X';
+        if (check.every((val) => val == 'O')) return 'O';
 
         return 0;
     }
@@ -106,8 +114,8 @@ function gameboard(n) {
             check.push(_gridArr[r][n-r-1]);
         }
 
-        if (check.every((val) => val == -1)) return -1;
-        if (check.every((val) => val == 1)) return 1;
+        if (check.every((val) => val == 'X')) return 'X';
+        if (check.every((val) => val == 'O')) return 'O';
 
         return 0;
     }
@@ -131,9 +139,11 @@ function gameboard(n) {
     }
 
     return {grids,
+            getN,
             createGrids, 
             setGrid, 
             getGrid, 
+            getGridArr,
             logGridArr,
             checkColWinner, 
             checkRowWinner, 
@@ -164,8 +174,8 @@ function player(marker) {
 // Game controller module
 const gameRunner = (() => {
         
-    const _player1 = player(-1);
-    const _player2 = player(1);
+    const _player1 = player('X');
+    const _player2 = player('O');
     
     // Boolean defaults for active, player1 always starts
     _player1.setActive(true);
@@ -174,7 +184,8 @@ const gameRunner = (() => {
     function getPlayer1() { return _player1 };
     function getPlayer2() { return _player2 };
 
-    var _game = null; 
+    var _game = null;
+    var _n = null; 
 
     function getGameboard() {return _game};
 
@@ -182,6 +193,11 @@ const gameRunner = (() => {
         // Take n input and create grids
         _game = gameboard(n);
         _game.createGrids();
+        _n = _game.getN();
+
+        // Return default active state - player1 always starts
+        _player1.setActive(true);
+        _player2.setActive(false);
     };
 
 
@@ -210,6 +226,115 @@ const gameRunner = (() => {
         _game.setGrid(_player2.getMarker(),r,c);
     }
 
+    /**
+     * Minimax function to determine and step player - return [r,c] index of next move
+     * @param {int} marker - marker for the AI Player to be maximizing player
+     * @param {float} percentage - percentage of times the aimove will choose the minimax unbeatable option
+     * ex) if percentage = 0.7, 70% will be minimax option choice and 30% will be random
+     ** @param {int} n - number of rows/columns in gameboard
+     
+    */
+    function aiStepIdx(marker, percentage) {
+
+        if (Math.random() < percentage) { // Minimax option
+            let bestScore = -Infinity;
+            let bestMove; 
+            
+            for (let r = 0; r < _n; r++) {
+                for (let c = 0; c < _n; c++) {
+                    if (_game.getGrid(r,c) == "") {
+                        empty.push({r, c});
+    
+                        _game.setGrid(marker,r,c); // Temporarily set empty spot as marker
+                        
+                        let score = minimax(marker, 0, false); 
+    
+                        _game.setGrid(0,r,c); // Undo move after minimax called
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestMove = {r, c};
+                        }
+                    }
+                }
+            }
+            
+            return bestMove;
+        }
+        else { // Randomized option
+            // Empty available spots
+            let empty = [];
+            for (let r = 0; r < _n; r++) {
+                for (let c = 0; c < _n; c++) {
+                    if (_game.getGrid(r,c) == "") {
+                        empty.push({r, c});
+                    }
+                }
+            }
+
+            return empty[Math.floor(Math.random()*empty.length())];
+        }
+    };
+
+    /**
+     * Minimax crux algorithm to determine score of each step in each depth
+     * @param {string} marker - maximizing player's marker
+     * @param {int} depth - depth of recursion tree
+     * @param {bool} isMaximizing - true/false whether depth from call is maximizing's turn
+     * 
+     */
+    function minimax(marker, depth, isMaximizing) {
+        // Check result and return score (Base case scenario);
+        if (checkResult()) {
+            if (checkResult() == 0) {
+                return 0;
+            }
+            else if (checkResult() == marker) {
+                return 1;
+            }
+            else {
+                return -1;
+            }
+        }
+
+        // (Recursive case)
+        if (isMaximizing) { // if next step is maximizing player's turn
+            let bestScore = -Infinity;
+            
+            for (let r = 0; r < _n; r++) {
+                for (let c = 0; c < _n; c++) {
+                    if (_game.getGrid(r,c) == "") {
+
+                        _game.setGrid(marker,r,c); // Temporarily set empty spot as marker
+                        
+                        let score = minimax(marker, depth + 1, true); 
+    
+                        _game.setGrid(0,r,c); // Undo move after minimax called
+                        bestScore = max(score, bestScore)
+                    }
+                }
+            }
+            return bestScore;       
+        }
+        else {
+            let bestScore = Infinity;
+            
+            for (let r = 0; r < _n; r++) {
+                for (let c = 0; c < _n; c++) {
+                    if (_game.getGrid(r,c) == "") {
+
+                        _game.setGrid(marker,r,c); // Temporarily set empty spot as marker
+                        
+                        let score = minimax(marker, depth + 1, false); 
+    
+                        _game.setGrid(0,r,c); // Undo move after minimax called
+                        bestScore = min(score, bestScore)
+                    }
+                }
+            }
+            return bestScore;  
+        };
+    };
+
     return {
             getPlayer1,
             getPlayer2,
@@ -219,6 +344,7 @@ const gameRunner = (() => {
             checkResult,
             stepPlayer1,
             stepPlayer2,
+            aiStepIdx,
             };
 })();
 
@@ -230,7 +356,7 @@ const displayGame = (() => {
 
     // Defaults
     let _n = 3; // Number of rows/columns 
-    let _m = 0; // Game Mode - 0 (pvp), 1 (easy), 2 (medium), 3 (hard), 4 (impossible), 5(random)
+    let _m = 0; // Game Mode - 0 (pvp), 1 (random), 2 (easy), 3 (medium), 4 (hard), 5(impossible)
 
     // Main
     setGame(); 
@@ -259,43 +385,62 @@ const displayGame = (() => {
     function setGame() {
         gameRunner.initGame(_n);
         displayGrids();
+
         let htmlgrids = document.querySelectorAll(".grid-unit");
         
         const modal = document.querySelector(".result");
         const result = document.querySelector(".result-text");
+
+        const headx = document.querySelector(".head-x");
+        const heado = document.querySelector(".head-o");
+        
+        headx.classList.add("player-active");
+        heado.classList.remove("player-active");
         
         htmlgrids.forEach( (grid) => {
             grid.addEventListener('click',() => {
                 console.log(gameRunner.getPlayer1().getActive());
                 console.log(gameRunner.getPlayer2().getActive());
+                
 
                 if (gameRunner.getPlayer1().getActive()) {
-                    if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id)[0],convertIdxtoRC(grid.id)[1]) == 0) {
+                    // Player 1 ('X') makes move
+                    if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c) == "") {
 
-                        gameRunner.stepPlayer1(convertIdxtoRC(grid.id)[0],convertIdxtoRC(grid.id)[1]);
+                        gameRunner.stepPlayer1(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
                         grid.textContent = 'X';
                     
                         gameRunner.getPlayer1().setActive(false);
                         gameRunner.getPlayer2().setActive(true);
+
+                        headx.classList.remove("player-active");
+                        heado.classList.add("player-active");
                     }
                     else {
                         console.log("Already filled. Choose different grid.")
                     }
                 }
                 else if (gameRunner.getPlayer2().getActive()) {
-                    if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id)[0],convertIdxtoRC(grid.id)[1]) == 0) {
+                    // Player 2 ('X') makes move
+                    if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c) == "") {
                         
-                        gameRunner.stepPlayer2(convertIdxtoRC(grid.id)[0],convertIdxtoRC(grid.id)[1]);
+                        gameRunner.stepPlayer2(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
                         grid.textContent = 'O';
 
                         gameRunner.getPlayer2().setActive(false);
                         gameRunner.getPlayer1().setActive(true);
+
+                        heado.classList.remove("player-active");
+                        headx.classList.add("player-active");
                     }
                     else {
                         console.log("Already filled. Choose different grid.")
                     }
                 }  
                 gameRunner.logGame();
+                
+                // Debug Test DELETE
+                gameRunner.aiStepIdx('X',1);
 
                 // Check for winner after each step
                 if (gameRunner.checkResult() != 0) {
@@ -307,9 +452,10 @@ const displayGame = (() => {
                     }
                     else {
                         console.log(`${gameRunner.checkResult()} wins`);
+                        result.textContent = `${gameRunner.checkResult()} wins`;
 
                         modal.showModal();
-                        result.textContent = `${gameRunner.checkResult()} wins`;
+                        
                     }
                 }
             });
@@ -332,7 +478,7 @@ const displayGame = (() => {
 
     // Convert 1D index into 2D [r,c] indices
     function convertIdxtoRC(i) {
-        return [Math.floor(i / _n), i % _n];
+        return {r: Math.floor(i / _n), c: i % _n};
     }
 
 
@@ -371,6 +517,8 @@ const displayGame = (() => {
         
             setGame,
             displayGrids,
+
+            restartGame,
             
             convertIdxtoRC,
 
