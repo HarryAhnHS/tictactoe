@@ -228,7 +228,7 @@ const gameRunner = (() => {
 
     /**
      * Minimax function to determine and step player - return [r,c] index of next move
-     * @param {int} marker - marker for the AI Player to be maximizing player
+     * @param {string} marker - marker for the AI Player to be maximizing player
      * @param {float} percentage - percentage of times the aimove will choose the minimax unbeatable option
      * ex) if percentage = 0.7, 70% will be minimax option choice and 30% will be random
      ** @param {int} n - number of rows/columns in gameboard
@@ -236,20 +236,20 @@ const gameRunner = (() => {
     */
     function aiStepIdx(marker, percentage) {
 
+        
+
         if (Math.random() < percentage) { // Minimax option
             let bestScore = -Infinity;
             let bestMove; 
             
             for (let r = 0; r < _n; r++) {
                 for (let c = 0; c < _n; c++) {
-                    if (_game.getGrid(r,c) == "") {
-                        empty.push({r, c});
-    
+                    if (_game.getGrid(r,c) == "") {    
                         _game.setGrid(marker,r,c); // Temporarily set empty spot as marker
                         
                         let score = minimax(marker, 0, false); 
     
-                        _game.setGrid(0,r,c); // Undo move after minimax called
+                        _game.setGrid("",r,c); // Undo move after minimax called
                         if (score > bestScore) {
                             bestScore = score;
                             bestMove = {r, c};
@@ -257,7 +257,7 @@ const gameRunner = (() => {
                     }
                 }
             }
-            
+            console.log(bestMove);
             return bestMove;
         }
         else { // Randomized option
@@ -283,40 +283,34 @@ const gameRunner = (() => {
      * 
      */
     function minimax(marker, depth, isMaximizing) {
+
+
+        let other;
+        if (marker == 'X') {
+            other = 'O';
+        }
+        else if (marker == 'O') {
+            other = 'X';
+        }
+
         // Check result and return score (Base case scenario);
         if (checkResult()) {
-            if (checkResult() == 0) {
-                return 0;
+            if (checkResult() == 2) {
+                return 0; // Tie
             }
             else if (checkResult() == marker) {
                 return 1;
             }
-            else {
+            else if (checkResult() == other) {
                 return -1;
             }
         }
 
-        // (Recursive case)
-        if (isMaximizing) { // if next step is maximizing player's turn
-            let bestScore = -Infinity;
-            
-            for (let r = 0; r < _n; r++) {
-                for (let c = 0; c < _n; c++) {
-                    if (_game.getGrid(r,c) == "") {
 
-                        _game.setGrid(marker,r,c); // Temporarily set empty spot as marker
-                        
-                        let score = minimax(marker, depth + 1, true); 
-    
-                        _game.setGrid(0,r,c); // Undo move after minimax called
-                        bestScore = max(score, bestScore)
-                    }
-                }
-            }
-            return bestScore;       
-        }
-        else {
-            let bestScore = Infinity;
+
+        // (Recursive case)
+        if (isMaximizing) { // if maximizing player's turn
+            let bestScore = -Infinity;
             
             for (let r = 0; r < _n; r++) {
                 for (let c = 0; c < _n; c++) {
@@ -326,8 +320,27 @@ const gameRunner = (() => {
                         
                         let score = minimax(marker, depth + 1, false); 
     
-                        _game.setGrid(0,r,c); // Undo move after minimax called
-                        bestScore = min(score, bestScore)
+                        _game.setGrid("",r,c); // Undo move after minimax called
+                        bestScore = Math.max(score, bestScore)
+                    }
+                }
+            }
+            return bestScore;       
+        }
+        else {
+            // If minimizing player's turn
+            let bestScore = Infinity;
+            
+            for (let r = 0; r < _n; r++) {
+                for (let c = 0; c < _n; c++) {
+                    if (_game.getGrid(r,c) == "") {
+
+                        _game.setGrid(other,r,c); // Temporarily set empty spot as marker
+                        
+                        let score = minimax(marker, depth + 1, true); 
+    
+                        _game.setGrid("",r,c); // Undo move after minimax called
+                        bestScore = Math.min(score, bestScore);
                     }
                 }
             }
@@ -396,6 +409,7 @@ const displayGame = (() => {
         
         headx.classList.add("player-active");
         heado.classList.remove("player-active");
+
         
         htmlgrids.forEach( (grid) => {
             grid.addEventListener('click',() => {
@@ -404,17 +418,28 @@ const displayGame = (() => {
                 
 
                 if (gameRunner.getPlayer1().getActive()) {
-                    // Player 1 ('X') makes move
+                    // Player 1 ('X') is active, and grid is clicked
                     if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c) == "") {
 
-                        gameRunner.stepPlayer1(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
-                        grid.textContent = 'X';
-                    
-                        gameRunner.getPlayer1().setActive(false);
-                        gameRunner.getPlayer2().setActive(true);
+                        if (_m == 0) { // PvP Gamemode
+                            gameRunner.stepPlayer1(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
+                            grid.textContent = 'X';
+                            
+                            gameRunner.getPlayer1().setActive(false);
+                            gameRunner.getPlayer2().setActive(true);
+                            headx.classList.remove("player-active");
+                            heado.classList.add("player-active");
+                        }
+                        else if (_m == 1) {
+                            gameRunner.stepPlayer1(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
+                            grid.textContent = 'X';
 
-                        headx.classList.remove("player-active");
-                        heado.classList.add("player-active");
+                            // 
+                            gameRunner.stepPlayer2(gameRunner.aiStepIdx('O',1).r, gameRunner.aiStepIdx('O',1).c);
+
+                        }
+
+                        
                     }
                     else {
                         console.log("Already filled. Choose different grid.")
@@ -423,15 +448,21 @@ const displayGame = (() => {
                 else if (gameRunner.getPlayer2().getActive()) {
                     // Player 2 ('X') makes move
                     if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c) == "") {
+
+                        if (_m == 0) { // PvP Gamemode
+                            gameRunner.stepPlayer2(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
+                            grid.textContent = 'O';
+
+                            gameRunner.getPlayer2().setActive(false);
+                            gameRunner.getPlayer1().setActive(true);
+
+                            heado.classList.remove("player-active");
+                            headx.classList.add("player-active");
+                        }
                         
-                        gameRunner.stepPlayer2(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
-                        grid.textContent = 'O';
+                        
 
-                        gameRunner.getPlayer2().setActive(false);
-                        gameRunner.getPlayer1().setActive(true);
-
-                        heado.classList.remove("player-active");
-                        headx.classList.add("player-active");
+                        
                     }
                     else {
                         console.log("Already filled. Choose different grid.")
@@ -439,8 +470,6 @@ const displayGame = (() => {
                 }  
                 gameRunner.logGame();
                 
-                // Debug Test DELETE
-                gameRunner.aiStepIdx('X',1);
 
                 // Check for winner after each step
                 if (gameRunner.checkResult() != 0) {
