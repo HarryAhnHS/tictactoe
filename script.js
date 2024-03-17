@@ -218,12 +218,8 @@ const gameRunner = (() => {
     }
 
     // Each round of play 
-    function stepPlayer1(r,c) {
-        _game.setGrid(_player1.getMarker(),r,c);
-    }
-
-    function stepPlayer2(r,c) {
-        _game.setGrid(_player2.getMarker(),r,c);
+    function stepPlayer(player,r,c) {
+        _game.setGrid(player.getMarker(),r,c);
     }
 
     /**
@@ -235,8 +231,6 @@ const gameRunner = (() => {
      
     */
     function aiStepIdx(marker, percentage) {
-
-        
 
         if (Math.random() < percentage) { // Minimax option
             let bestScore = -Infinity;
@@ -271,7 +265,7 @@ const gameRunner = (() => {
                 }
             }
 
-            return empty[Math.floor(Math.random()*empty.length())];
+            return empty[Math.floor(Math.random()*empty.length)];
         }
     };
 
@@ -355,8 +349,7 @@ const gameRunner = (() => {
             initGame,
             logGame,
             checkResult,
-            stepPlayer1,
-            stepPlayer2,
+            stepPlayer,
             aiStepIdx,
             };
 })();
@@ -422,7 +415,7 @@ const displayGame = (() => {
                     if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c) == "") {
 
                         if (_m == 0) { // PvP Gamemode
-                            gameRunner.stepPlayer1(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
+                            gameRunner.stepPlayer(gameRunner.getPlayer1(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
                             grid.textContent = 'X';
                             
                             gameRunner.getPlayer1().setActive(false);
@@ -430,27 +423,72 @@ const displayGame = (() => {
                             headx.classList.remove("player-active");
                             heado.classList.add("player-active");
                         }
-                        else if (_m == 1) {
-                            gameRunner.stepPlayer1(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
+                        else if (_m == 1) { // Random AI
+                            gameRunner.stepPlayer(gameRunner.getPlayer1(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
                             grid.textContent = 'X';
 
-                            // 
-                            gameRunner.stepPlayer2(gameRunner.aiStepIdx('O',1).r, gameRunner.aiStepIdx('O',1).c);
+                            let AIStep = gameRunner.aiStepIdx('O',0);
 
+                            if (gameRunner.checkResult() == 0) {
+                                gameRunner.stepPlayer(gameRunner.getPlayer2(),AIStep.r, AIStep.c);
+                                displayGridStep('O',AIStep.r, AIStep.c);
+                            }
                         }
+                        else if (_m == 2) { // Easy AI
+                            gameRunner.stepPlayer(gameRunner.getPlayer1(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
+                            grid.textContent = 'X';
 
-                        
+                            let AIStep = gameRunner.aiStepIdx('O',0.25);
+
+                            if (gameRunner.checkResult() == 0) {
+                                gameRunner.stepPlayer(gameRunner.getPlayer2(),AIStep.r, AIStep.c);
+                                displayGridStep('O',AIStep.r, AIStep.c);
+                            }
+                        }
+                        else if (_m == 3) { // Medium AI
+                            gameRunner.stepPlayer(gameRunner.getPlayer1(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
+                            grid.textContent = 'X';
+
+                            let AIStep = gameRunner.aiStepIdx('O',0.5);
+
+                            if (gameRunner.checkResult() == 0) {
+                                gameRunner.stepPlayer(gameRunner.getPlayer2(),AIStep.r, AIStep.c);
+                                displayGridStep('O',AIStep.r, AIStep.c);
+                            }
+                        }
+                        else if (_m == 4) { // Hard AI
+                            gameRunner.stepPlayer(gameRunner.getPlayer1(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
+                            grid.textContent = 'X';
+
+                            let AIStep = gameRunner.aiStepIdx('O',0.75);
+
+                            if (gameRunner.checkResult() == 0) {
+                                gameRunner.stepPlayer(gameRunner.getPlayer2(),AIStep.r, AIStep.c);
+                                displayGridStep('O',AIStep.r, AIStep.c);
+                            }
+                        }
+                        else if (_m == 5) { // Impossible AI
+                            gameRunner.stepPlayer(gameRunner.getPlayer1(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
+                            grid.textContent = 'X';
+
+                            let AIStep = gameRunner.aiStepIdx('O',1);
+
+                            if (gameRunner.checkResult() == 0) {
+                                gameRunner.stepPlayer(gameRunner.getPlayer2(),AIStep.r, AIStep.c);
+                                displayGridStep('O',AIStep.r, AIStep.c);
+                            }
+                        }
                     }
                     else {
                         console.log("Already filled. Choose different grid.")
                     }
                 }
                 else if (gameRunner.getPlayer2().getActive()) {
-                    // Player 2 ('X') makes move
+                    // Player 2 ('O') makes move
                     if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c) == "") {
 
                         if (_m == 0) { // PvP Gamemode
-                            gameRunner.stepPlayer2(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
+                            gameRunner.stepPlayer(gameRunner.getPlayer2(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
                             grid.textContent = 'O';
 
                             gameRunner.getPlayer2().setActive(false);
@@ -459,10 +497,6 @@ const displayGame = (() => {
                             heado.classList.remove("player-active");
                             headx.classList.add("player-active");
                         }
-                        
-                        
-
-                        
                     }
                     else {
                         console.log("Already filled. Choose different grid.")
@@ -473,6 +507,7 @@ const displayGame = (() => {
 
                 // Check for winner after each step
                 if (gameRunner.checkResult() != 0) {
+                    console.log("Reached here")
                     if (gameRunner.checkResult() == 2) {
                         console.log("Tie");
 
@@ -481,15 +516,32 @@ const displayGame = (() => {
                     }
                     else {
                         console.log(`${gameRunner.checkResult()} wins`);
-                        result.textContent = `${gameRunner.checkResult()} wins`;
 
                         modal.showModal();
-                        
+                        result.textContent = `${gameRunner.checkResult()} wins`;
                     }
                 }
             });
         });
     };
+
+    function displayGridStep(marker,r,c) {
+        let i = parseInt(convertRCtoIdx(r,c));
+        let grid = document.getElementById(i);
+        grid.textContent = marker;
+    }
+
+
+    // Convert 1D index into 2D {r,c} indices object
+    function convertIdxtoRC(i) {
+        return {r: Math.floor(i / _n), c: i % _n};
+    }
+
+    // Convert 2D {r,c} indices object to 1D array index i
+    function convertRCtoIdx(r,c) {
+        return (r*_n + c);
+    }
+
 
     const restartGame = (() => {
         const restart = document.querySelector("#restart");
@@ -505,10 +557,6 @@ const displayGame = (() => {
     })();
 
 
-    // Convert 1D index into 2D [r,c] indices
-    function convertIdxtoRC(i) {
-        return {r: Math.floor(i / _n), c: i % _n};
-    }
 
 
     // HANDLING INPUT CHANGES IN GRID SIZE AND MODE
@@ -546,6 +594,7 @@ const displayGame = (() => {
         
             setGame,
             displayGrids,
+            displayGridStep,
 
             restartGame,
             
