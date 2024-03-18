@@ -5,11 +5,12 @@ function gameboard(n) {
     
     var _gridArr = []; // 2D Array to hold game
 
+    // Getter function for n
     function getN() {
         return n;
     }
 
-    // Initialize grid as 2D array filled with 0
+    //Initialize grid as 2D array filled with ""
     function createGrids() {
         _gridArr = []; // Initialize as empty 
         
@@ -27,10 +28,22 @@ function gameboard(n) {
         }
     };
 
+    /**
+     * Set grid with marker to 2D indices [r,c]
+     * @param {string} marker - marker for player
+     * @param {int} r -2D row index
+     * @param {int} c -2D column index
+     */
     function setGrid(marker,r,c) {
         _gridArr[r][c] = marker;
     };
 
+    /**
+     * Get contents of grid with marker to 2D indices [r,c] 
+     * @param {int} r -2D row index
+     * @param {int} c -2D column index
+     * Marker - """ (not filled), 'X', 'O'
+     */
     function getGrid(r,c) {
         if (r >= 0 && r < n && c >= 0 && c < n) {
             return _gridArr[r][c];
@@ -48,27 +61,28 @@ function gameboard(n) {
         return _gridArr;
     };
 
-    // CHECK WINNERS(3x3~5x5) rows, cols, diag, tie
-    // n = 3, grids = 9
-    //   0 1 2
-    // 0 ? ? ?
-    // 1 ? ? ?
-    // 2 ? ? ?
+    /* CHECK WINNERS(3x3~5x5) rows, cols, diag, tie
+    n = 3, grids = 9
+      0 1 2
+    0 ? ? ?
+    1 ? ? ?
+    2 ? ? ?
 
-    // n = 4, grids = 16
-    //   0 1 2 3
-    // 0 ? ? ? ?
-    // 1 ? ? ? ?
-    // 2 ? ? ? ?
-    // 3 ? ? ? ?
+    n = 4, grids = 16
+      0 1 2 3
+    0 ? ? ? ?
+    1 ? ? ? ?
+    2 ? ? ? ?
+    3 ? ? ? ?
 
-    // n = 5, grids = 25
-    //   0 1 2 3 4
-    // 0 ? ? ? ? ?
-    // 1 ? ? ? ? ? 
-    // 2 ? ? ? ? ? 
-    // 3 ? ? ? ? ?
-    // 4 ? ? ? ? ?
+    n = 5, grids = 25
+      0 1 2 3 4
+    0 ? ? ? ? ?
+    1 ? ? ? ? ? 
+    2 ? ? ? ? ? 
+    3 ? ? ? ? ?
+    4 ? ? ? ? ?
+    */
 
     // Check if there is winner, return 'X, 0 (no result), or 'O
     function checkColWinner() {
@@ -83,7 +97,6 @@ function gameboard(n) {
 
         return 0;
     }
-
     function checkRowWinner() {
         for (c = 0; c < n; c++) {
             let rows = [];
@@ -189,6 +202,7 @@ const gameRunner = (() => {
 
     function getGameboard() {return _game};
 
+    // Create gameboard object with _gamearr, set default player active states ('X' active, 'O' )
     function initGame(n) {
         // Take n input and create grids
         _game = gameboard(n);
@@ -200,12 +214,14 @@ const gameRunner = (() => {
         _player2.setActive(false);
     };
 
-
     function logGame() {
         _game.logGridArr();
     }
 
 
+    // Run through gameboard and check for final result
+    // If outcome exists, return winner's marker or 2 for tie.
+    // If no outcome exists and game should continue, return 0.
     function checkResult() {
         // Check for winner/tie, return false otherwise
         if (_game.checkColWinner()) return _game.checkColWinner();
@@ -217,7 +233,12 @@ const gameRunner = (() => {
         return 0;
     }
 
-    // Each round of play 
+    /**
+     * Each round of play, update _game's _gameArr with player's marker at index r,c
+     * @param {player} player - player object making current step 
+     * @param {int} r - 2D row index
+     * @param {int} c - 2D column index
+     *  */ 
     function stepPlayer(player,r,c) {
         _game.setGrid(player.getMarker(),r,c);
     }
@@ -407,7 +428,12 @@ const displayGame = (() => {
         };
     };
 
-    // Main game logic function depending on _m, and player active states
+    /**
+     * Main game logic function to be run on click of a grid depending on _m, and player active states
+     * If grid already not selected, Set grid to clicked player's marker and update player active states,
+     * If _m > -1, set AI to make next move depending on difficulty
+     * @param {e} grid - event of grid clicked
+     */
     function gridPressedGameLogic(grid) {
 
         const modal = document.querySelector(".result");
@@ -443,6 +469,9 @@ const displayGame = (() => {
                         displayGridStep('O',AIStep.r, AIStep.c);
                     }
                 }   
+            }
+            else {
+                console.log("Already filled. Choose different grid.")
             }
         }
         else if (gameRunner.getPlayer2().getActive()) {
@@ -497,24 +526,37 @@ const displayGame = (() => {
         }
     };
 
+    /**
+     * Function to update grid display with appropriate marker if AI made automatic choice
+     * @param {string} marker 
+     * @param {int} r 
+     * @param {int} c 
+     */
     function displayGridStep(marker,r,c) {
         let i = parseInt(convertRCtoIdx(r,c));
         let grid = document.getElementById(i);
         grid.textContent = marker;
     }
 
-
-    // Convert 1D index into 2D {r,c} indices object
+    /**
+     * Convert 1D index into 2D {r,c} indices object
+     * @param {int} i - 1D index
+     * @returns {object} 2D {r,c} index object 
+     */
     function convertIdxtoRC(i) {
         return {r: Math.floor(i / _n), c: i % _n};
     }
 
-    // Convert 2D {r,c} indices object to 1D array index i
+    /**
+     * Convert 2D {r,c} indices object to 1D array index i
+     * @param {object} 2D {r,c} index object 
+     * @returns {int} i - 1D index
+     */
     function convertRCtoIdx(r,c) {
         return (r*_n + c);
     }
 
-
+    // Module to run if restart button is clicked in game over modal
     const restartGame = (() => {
         const restart = document.querySelector("#restart");
         
@@ -528,12 +570,9 @@ const displayGame = (() => {
         })
     })();
 
-
-
-
     // HANDLING INPUT CHANGES IN GRID SIZE AND MODE
 
-    // Set gamemode based on input
+    // Set gamemode based on input module
     const setMode = (() => {
         const mode = document.querySelector("#game-mode");
         mode.addEventListener('change', (e) => {
