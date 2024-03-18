@@ -367,7 +367,25 @@ const displayGame = (() => {
     let _m = -1; // Game Mode - -1 (pvp), 0 (random), 1 (easy), 2 (medium), 3 (hard), 4(impossible)
 
     // Main
-    setGame(); 
+    startGame(); 
+
+    // Default state of Player 1 (active) and Player 2 (inactive) and run game logic (Restart)
+    function startGame() {
+        const headx = document.querySelector(".head-x");
+        const heado = document.querySelector(".head-o");
+        
+        headx.classList.add("player-active");
+        heado.classList.remove("player-active");
+
+        gameRunner.initGame(_n); // Initialize game array and display
+        displayGrids();
+        let htmlgrids = document.querySelectorAll(".grid-unit");
+
+        // Run game logic to each grid unit
+        htmlgrids.forEach( (grid) => {
+            grid.addEventListener('click',(e) => gridPressedGameLogic(e.target));
+        });  
+    };
 
     // Display n by n grid 
     function displayGrids() {
@@ -389,6 +407,7 @@ const displayGame = (() => {
         };
     };
 
+    // Main game logic function depending on _m, and player active states
     function gridPressedGameLogic(grid) {
 
         const modal = document.querySelector(".result");
@@ -460,7 +479,7 @@ const displayGame = (() => {
         gameRunner.logGame();
         
 
-        // Check for winner after each step
+        // Check for winner after each step, if result exists pop modal and stop game until restarteds
         if (gameRunner.checkResult() != 0) {
             console.log("Reached here");
             if (gameRunner.checkResult() == 2) {
@@ -476,78 +495,6 @@ const displayGame = (() => {
                 result.textContent = `${gameRunner.checkResult()} wins`;
             }
         }
-    };
-
-    function setGame() {
-        gameRunner.initGame(_n); // Initialize game
-        displayGrids();
-        let htmlgrids = document.querySelectorAll(".grid-unit");
-
-        const headx = document.querySelector(".head-x");
-        const heado = document.querySelector(".head-o");
-        
-        headx.classList.add("player-active");
-        heado.classList.remove("player-active");
-
-        // Run Game logic
-        htmlgrids.forEach( (grid) => {
-            grid.addEventListener('click',(e) => gridPressedGameLogic(e.target));
-        });  
-
-        // Allow ability to Switch player if vs. AI
-        if (_m > -1) {
-            // Switch from X to O
-            heado.addEventListener('click', changeXtoO);
-
-            function changeXtoO() {
-                gameRunner.initGame(_n); // Reset game
-                displayGrids();
-                let htmlgrids = document.querySelectorAll(".grid-unit");
-                
-                console.log("head clicked running");
-                // Run AI makes first move (X) based on _m 
-                let AIStep = gameRunner.aiStepIdx('X',_m * 0.25);
-                gameRunner.stepPlayer(gameRunner.getPlayer1(),AIStep.r, AIStep.c);
-                displayGridStep('X',AIStep.r, AIStep.c);
-
-                // Set O to be active player
-                headx.classList.remove("player-active")
-                heado.classList.add("player-active")
-                gameRunner.getPlayer1().setActive(false);
-                gameRunner.getPlayer2().setActive(true);
-
-                // Run Game Logic
-                htmlgrids.forEach( (grid) => {
-                    grid.addEventListener('click',(e) => gridPressedGameLogic(e.target));
-                });
-                
-                // // Reset event listener to prevent multiple calls if game is restarted and setGame() called again in runtime
-                heado.removeEventListener('click',changeXtoO);
-            };
-
-            // Switch from O to X
-            headx.addEventListener('click', changeOtoX);
-
-            function changeOtoX() {
-                gameRunner.initGame(_n); // Reset game
-                displayGrids();
-                let htmlgrids = document.querySelectorAll(".grid-unit");
-                
-                // Set X to be active player
-                headx.classList.add("player-active");
-                heado.classList.remove("player-active");
-                gameRunner.getPlayer1().setActive(true);
-                gameRunner.getPlayer2().setActive(false);
-        
-                // Run Game logic
-                htmlgrids.forEach( (grid) => {
-                    grid.addEventListener('click',(e) => gridPressedGameLogic(e.target));
-                });  
-
-                // // Reset event listener to prevent multiple calls if game is restarted and setGame() called again in runtime
-                headx.removeEventListener('click',changeOtoX);
-            };
-        };
     };
 
     function displayGridStep(marker,r,c) {
@@ -577,7 +524,7 @@ const displayGame = (() => {
             // Call the built-in 'close' method to close the modal
             modal.close();
 
-            setGame();
+            startGame();
         })
     })();
 
@@ -591,8 +538,49 @@ const displayGame = (() => {
         const mode = document.querySelector("#game-mode");
         mode.addEventListener('change', (e) => {
             _m = parseInt(e.target.value);
-            setGame();
+            
+            // Reset Game            
+            startGame();
         });
+    })();
+
+    // Allow ability to Switch player if vs. AI
+    const changePlayer = (() => {
+        
+        const headx = document.querySelector(".head-x");
+        const heado = document.querySelector(".head-o");
+    
+        // Switch from X to O
+        heado.addEventListener('click', changeXtoO);
+
+        function changeXtoO() {
+            if (_m > -1) {
+                startGame();
+                
+                console.log("head clicked running");
+                // Run AI makes first move (X) based on _m 
+                let AIStep = gameRunner.aiStepIdx('X',_m * 0.25);
+                gameRunner.stepPlayer(gameRunner.getPlayer1(),AIStep.r, AIStep.c);
+                displayGridStep('X',AIStep.r, AIStep.c);
+    
+                // Set O to be active player
+                headx.classList.remove("player-active")
+                heado.classList.add("player-active")
+                gameRunner.getPlayer1().setActive(false);
+                gameRunner.getPlayer2().setActive(true);
+            }
+        };
+
+        // Switch from O to X
+        headx.addEventListener('click', changeOtoX);
+
+        function changeOtoX() {
+            if (_m > -1) {
+                // Set X to be Active Player (Restart to default)
+                startGame();
+                console.log("head clicked running");
+            }
+        };
     })();
 
 
@@ -601,10 +589,10 @@ const displayGame = (() => {
     // Take input for 1v1 or against AI or against Random
 
     return {
+            startGame,
 
             gridPressedGameLogic,
         
-            setGame,
             displayGrids,
             displayGridStep,
 
@@ -612,6 +600,8 @@ const displayGame = (() => {
             
             convertIdxtoRC,
             setMode,
+            changePlayer,
+            
             };
 
 })()
