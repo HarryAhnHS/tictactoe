@@ -18,12 +18,12 @@ function gameboard(n) {
             var _colArr = [];
             for (let c = r; c < r+parseInt(n); c++) {
                 _colArr.push("");
-                console.log(`r = ${r} | c = ${c}`)
+                // console.log(`r = ${r} | c = ${c}`)
             }
             
             // Add inner array into outer array
             _gridArr.push(_colArr);
-            console.log(`pushed ${_colArr} into ${_gridArr}`)
+            // console.log(`pushed ${_colArr} into ${_gridArr}`)
         }
     };
 
@@ -252,6 +252,8 @@ const gameRunner = (() => {
                 }
             }
             console.log(bestMove);
+            console.log(marker);
+            console.log(percentage);
             return bestMove;
         }
         else { // Randomized option
@@ -362,7 +364,7 @@ const displayGame = (() => {
 
     // Defaults
     let _n = 3; // Number of rows/columns 
-    let _m = 0; // Game Mode - 0 (pvp), 1 (random), 2 (easy), 3 (medium), 4 (hard), 5(impossible)
+    let _m = -1; // Game Mode - -1 (pvp), 0 (random), 1 (easy), 2 (medium), 3 (hard), 4(impossible)
 
     // Main
     setGame(); 
@@ -387,15 +389,99 @@ const displayGame = (() => {
         };
     };
 
+    function gridPressedGameLogic(grid) {
 
-    function setGame() {
-        gameRunner.initGame(_n);
-        displayGrids();
-
-        let htmlgrids = document.querySelectorAll(".grid-unit");
-        
         const modal = document.querySelector(".result");
         const result = document.querySelector(".result-text");
+
+        const headx = document.querySelector(".head-x");
+        const heado = document.querySelector(".head-o");
+
+        console.log(gameRunner.getPlayer1().getActive());
+        console.log(gameRunner.getPlayer2().getActive());
+        
+        if (gameRunner.getPlayer1().getActive()) {
+            // Player 1 ('X') is active, and grid is clicked
+            if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c) == "") {
+
+                if (_m == -1) { // PvP Gamemode
+                    gameRunner.stepPlayer(gameRunner.getPlayer1(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
+                    grid.textContent = 'X';
+                    
+                    gameRunner.getPlayer1().setActive(false);
+                    gameRunner.getPlayer2().setActive(true);
+                    headx.classList.remove("player-active");
+                    heado.classList.add("player-active");
+                }
+                else if (_m > -1) { // Random AI with _m determining difficulty percentage
+                    gameRunner.stepPlayer(gameRunner.getPlayer1(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
+                    grid.textContent = 'X';
+
+                    let AIStep = gameRunner.aiStepIdx('O',_m * 0.25);
+
+                    if (gameRunner.checkResult() == 0) {
+                        gameRunner.stepPlayer(gameRunner.getPlayer2(),AIStep.r, AIStep.c);
+                        displayGridStep('O',AIStep.r, AIStep.c);
+                    }
+                }   
+            }
+        }
+        else if (gameRunner.getPlayer2().getActive()) {
+            // Player 2 ('O') is active
+            if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c) == "") {
+
+                if (_m == -1) { // PvP Gamemode
+                    gameRunner.stepPlayer(gameRunner.getPlayer2(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
+                    grid.textContent = 'O';
+
+                    gameRunner.getPlayer2().setActive(false);
+                    gameRunner.getPlayer1().setActive(true);
+
+                    heado.classList.remove("player-active");
+                    headx.classList.add("player-active");
+                }
+                else if (_m > -1) { // Random AI with _m determining difficulty percentage
+                    gameRunner.stepPlayer(gameRunner.getPlayer2(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
+                    grid.textContent = 'O';
+
+                    let AIStep = gameRunner.aiStepIdx('X',_m * 0.25);
+
+                    if (gameRunner.checkResult() == 0) {
+                        gameRunner.stepPlayer(gameRunner.getPlayer1(),AIStep.r, AIStep.c);
+                        displayGridStep('X',AIStep.r, AIStep.c);
+                    }
+                }   
+
+            }
+            else {
+                console.log("Already filled. Choose different grid.")
+            }
+        }  
+        gameRunner.logGame();
+        
+
+        // Check for winner after each step
+        if (gameRunner.checkResult() != 0) {
+            console.log("Reached here");
+            if (gameRunner.checkResult() == 2) {
+                console.log("Tie");
+
+                modal.showModal();
+                result.textContent = "It's a tie."
+            }
+            else {
+                console.log(`${gameRunner.checkResult()} wins`);
+
+                modal.showModal();
+                result.textContent = `${gameRunner.checkResult()} wins`;
+            }
+        }
+    };
+
+    function setGame() {
+        gameRunner.initGame(_n); // Initialize game
+        displayGrids();
+        let htmlgrids = document.querySelectorAll(".grid-unit");
 
         const headx = document.querySelector(".head-x");
         const heado = document.querySelector(".head-o");
@@ -403,125 +489,37 @@ const displayGame = (() => {
         headx.classList.add("player-active");
         heado.classList.remove("player-active");
 
-        
+        // Switch player if vs. AI
+        heado.addEventListener('click', () => {
+            if (_m > -1) {
+                // Restart game
+                gameRunner.initGame(_n);
+                displayGrids();
+                htmlgrids = document.querySelectorAll(".grid-unit");
+
+
+                if (gameRunner.getPlayer1().getActive(true)) {
+                    // Run AI makes first move (X) based on _m 
+                    let AIStep = gameRunner.aiStepIdx('X',_m * 0.25);
+                    gameRunner.stepPlayer(gameRunner.getPlayer1(),AIStep.r, AIStep.c);
+                    displayGridStep('X',AIStep.r, AIStep.c);
+
+                    // Set O to be active player
+                    headx.classList.remove("player-active")
+                    heado.classList.add("player-active")
+
+                    gameRunner.getPlayer1().setActive(false);
+                    gameRunner.getPlayer2().setActive(true);
+
+                    htmlgrids.forEach( (grid) => {
+                        grid.addEventListener('click',(e) => gridPressedGameLogic(e.target));
+                    });
+                }
+            }
+        });
+
         htmlgrids.forEach( (grid) => {
-            grid.addEventListener('click',() => {
-                console.log(gameRunner.getPlayer1().getActive());
-                console.log(gameRunner.getPlayer2().getActive());
-                
-
-                if (gameRunner.getPlayer1().getActive()) {
-                    // Player 1 ('X') is active, and grid is clicked
-                    if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c) == "") {
-
-                        if (_m == 0) { // PvP Gamemode
-                            gameRunner.stepPlayer(gameRunner.getPlayer1(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
-                            grid.textContent = 'X';
-                            
-                            gameRunner.getPlayer1().setActive(false);
-                            gameRunner.getPlayer2().setActive(true);
-                            headx.classList.remove("player-active");
-                            heado.classList.add("player-active");
-                        }
-                        else if (_m == 1) { // Random AI
-                            gameRunner.stepPlayer(gameRunner.getPlayer1(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
-                            grid.textContent = 'X';
-
-                            let AIStep = gameRunner.aiStepIdx('O',0);
-
-                            if (gameRunner.checkResult() == 0) {
-                                gameRunner.stepPlayer(gameRunner.getPlayer2(),AIStep.r, AIStep.c);
-                                displayGridStep('O',AIStep.r, AIStep.c);
-                            }
-                        }
-                        else if (_m == 2) { // Easy AI
-                            gameRunner.stepPlayer(gameRunner.getPlayer1(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
-                            grid.textContent = 'X';
-
-                            let AIStep = gameRunner.aiStepIdx('O',0.25);
-
-                            if (gameRunner.checkResult() == 0) {
-                                gameRunner.stepPlayer(gameRunner.getPlayer2(),AIStep.r, AIStep.c);
-                                displayGridStep('O',AIStep.r, AIStep.c);
-                            }
-                        }
-                        else if (_m == 3) { // Medium AI
-                            gameRunner.stepPlayer(gameRunner.getPlayer1(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
-                            grid.textContent = 'X';
-
-                            let AIStep = gameRunner.aiStepIdx('O',0.5);
-
-                            if (gameRunner.checkResult() == 0) {
-                                gameRunner.stepPlayer(gameRunner.getPlayer2(),AIStep.r, AIStep.c);
-                                displayGridStep('O',AIStep.r, AIStep.c);
-                            }
-                        }
-                        else if (_m == 4) { // Hard AI
-                            gameRunner.stepPlayer(gameRunner.getPlayer1(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
-                            grid.textContent = 'X';
-
-                            let AIStep = gameRunner.aiStepIdx('O',0.75);
-
-                            if (gameRunner.checkResult() == 0) {
-                                gameRunner.stepPlayer(gameRunner.getPlayer2(),AIStep.r, AIStep.c);
-                                displayGridStep('O',AIStep.r, AIStep.c);
-                            }
-                        }
-                        else if (_m == 5) { // Impossible AI
-                            gameRunner.stepPlayer(gameRunner.getPlayer1(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
-                            grid.textContent = 'X';
-
-                            let AIStep = gameRunner.aiStepIdx('O',1);
-
-                            if (gameRunner.checkResult() == 0) {
-                                gameRunner.stepPlayer(gameRunner.getPlayer2(),AIStep.r, AIStep.c);
-                                displayGridStep('O',AIStep.r, AIStep.c);
-                            }
-                        }
-                    }
-                    else {
-                        console.log("Already filled. Choose different grid.")
-                    }
-                }
-                else if (gameRunner.getPlayer2().getActive()) {
-                    // Player 2 ('O') makes move
-                    if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c) == "") {
-
-                        if (_m == 0) { // PvP Gamemode
-                            gameRunner.stepPlayer(gameRunner.getPlayer2(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
-                            grid.textContent = 'O';
-
-                            gameRunner.getPlayer2().setActive(false);
-                            gameRunner.getPlayer1().setActive(true);
-
-                            heado.classList.remove("player-active");
-                            headx.classList.add("player-active");
-                        }
-                    }
-                    else {
-                        console.log("Already filled. Choose different grid.")
-                    }
-                }  
-                gameRunner.logGame();
-                
-
-                // Check for winner after each step
-                if (gameRunner.checkResult() != 0) {
-                    console.log("Reached here")
-                    if (gameRunner.checkResult() == 2) {
-                        console.log("Tie");
-
-                        modal.showModal();
-                        result.textContent = "It's a tie."
-                    }
-                    else {
-                        console.log(`${gameRunner.checkResult()} wins`);
-
-                        modal.showModal();
-                        result.textContent = `${gameRunner.checkResult()} wins`;
-                    }
-                }
-            });
+            grid.addEventListener('click',(e) => gridPressedGameLogic(e.target));
         });
     };
 
@@ -561,21 +559,6 @@ const displayGame = (() => {
 
     // HANDLING INPUT CHANGES IN GRID SIZE AND MODE
 
-    // Set number of rows/columns based on input
-    const setN = (() => {
-        const range = document.querySelector("#num-grids");
-        range.value = 3; // Set default size
-        
-        const rangeFeedback = document.querySelector("#num-grids-feedback");
-        rangeFeedback.textContent = "3 X 3" // Set default
-    
-        range.addEventListener('input', (e) => {
-            rangeFeedback.textContent = `${e.target.value} X ${e.target.value}`;
-            _n = parseInt(e.target.value);
-            setGame();
-        })
-    })();
-
     // Set gamemode based on input
     const setMode = (() => {
         const mode = document.querySelector("#game-mode");
@@ -591,6 +574,8 @@ const displayGame = (() => {
     // Take input for 1v1 or against AI or against Random
 
     return {
+
+            gridPressedGameLogic,
         
             setGame,
             displayGrids,
@@ -599,8 +584,6 @@ const displayGame = (() => {
             restartGame,
             
             convertIdxtoRC,
-
-            setN,
             setMode,
             };
 

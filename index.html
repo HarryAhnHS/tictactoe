@@ -26,21 +26,16 @@
             <div class="mode-dropdown">
                 <label for="game-mode">Select Game Mode:</label> 
                 <select name="mode" id="game-mode"> 
-                    <option value="0">P vs. P</option> 
-                    <option value="1">Random AI</option> 
-                    <option value="2">Easy AI</option> 
-                    <option value="3">Medium AI</option> 
-                    <option value="4">Hard AI</option> 
-                    <option value="5">Impossible AI</option> 
+                    <option value="-1">P vs. P</option> 
+                    <option value="0">Random AI</option> 
+                    <option value="1">Easy AI</option> 
+                    <option value="2">Medium AI</option> 
+                    <option value="3">Hard AI</option> 
+                    <option value="4">Impossible AI</option> 
                 </select>
             </div>
         </div>
         <div class="num-grids-input">
-            <form id="range-form">
-                <legend>Select the battleground</legend>
-                <input type="range" id="num-grids" min="3" max="5" step="1">
-                <div id="num-grids-feedback"></div>
-            </form>
         </div>
     </div>
     <div class="content">
