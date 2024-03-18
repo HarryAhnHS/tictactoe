@@ -489,38 +489,65 @@ const displayGame = (() => {
         headx.classList.add("player-active");
         heado.classList.remove("player-active");
 
-        // Switch player if vs. AI
-        heado.addEventListener('click', () => {
-            if (_m > -1) {
-                // Restart game
-                gameRunner.initGame(_n);
-                displayGrids();
-                htmlgrids = document.querySelectorAll(".grid-unit");
-
-
-                if (gameRunner.getPlayer1().getActive(true)) {
-                    // Run AI makes first move (X) based on _m 
-                    let AIStep = gameRunner.aiStepIdx('X',_m * 0.25);
-                    gameRunner.stepPlayer(gameRunner.getPlayer1(),AIStep.r, AIStep.c);
-                    displayGridStep('X',AIStep.r, AIStep.c);
-
-                    // Set O to be active player
-                    headx.classList.remove("player-active")
-                    heado.classList.add("player-active")
-
-                    gameRunner.getPlayer1().setActive(false);
-                    gameRunner.getPlayer2().setActive(true);
-
-                    htmlgrids.forEach( (grid) => {
-                        grid.addEventListener('click',(e) => gridPressedGameLogic(e.target));
-                    });
-                }
-            }
-        });
-
+        // Run Game logic
         htmlgrids.forEach( (grid) => {
             grid.addEventListener('click',(e) => gridPressedGameLogic(e.target));
-        });
+        });  
+
+        // Allow ability to Switch player if vs. AI
+        if (_m > -1) {
+            // Switch from X to O
+            heado.addEventListener('click', changeXtoO);
+
+            function changeXtoO() {
+                gameRunner.initGame(_n); // Reset game
+                displayGrids();
+                let htmlgrids = document.querySelectorAll(".grid-unit");
+                
+                console.log("head clicked running");
+                // Run AI makes first move (X) based on _m 
+                let AIStep = gameRunner.aiStepIdx('X',_m * 0.25);
+                gameRunner.stepPlayer(gameRunner.getPlayer1(),AIStep.r, AIStep.c);
+                displayGridStep('X',AIStep.r, AIStep.c);
+
+                // Set O to be active player
+                headx.classList.remove("player-active")
+                heado.classList.add("player-active")
+                gameRunner.getPlayer1().setActive(false);
+                gameRunner.getPlayer2().setActive(true);
+
+                // Run Game Logic
+                htmlgrids.forEach( (grid) => {
+                    grid.addEventListener('click',(e) => gridPressedGameLogic(e.target));
+                });
+                
+                // // Reset event listener to prevent multiple calls if game is restarted and setGame() called again in runtime
+                heado.removeEventListener('click',changeXtoO);
+            };
+
+            // Switch from O to X
+            headx.addEventListener('click', changeOtoX);
+
+            function changeOtoX() {
+                gameRunner.initGame(_n); // Reset game
+                displayGrids();
+                let htmlgrids = document.querySelectorAll(".grid-unit");
+                
+                // Set X to be active player
+                headx.classList.add("player-active");
+                heado.classList.remove("player-active");
+                gameRunner.getPlayer1().setActive(true);
+                gameRunner.getPlayer2().setActive(false);
+        
+                // Run Game logic
+                htmlgrids.forEach( (grid) => {
+                    grid.addEventListener('click',(e) => gridPressedGameLogic(e.target));
+                });  
+
+                // // Reset event listener to prevent multiple calls if game is restarted and setGame() called again in runtime
+                headx.removeEventListener('click',changeOtoX);
+            };
+        };
     };
 
     function displayGridStep(marker,r,c) {
