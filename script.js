@@ -410,20 +410,20 @@ const displayGame = (() => {
 
         htmlgrids.forEach( (grid) => {
             grid.addEventListener('mouseover', (e) => {
-                if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c) == "") {
+                if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c) == "" && !gameRunner.checkResult()) {
                     e.target.textContent = gameRunner.getActivePlayer().getMarker();
                     e.target.style['color'] = "#C0C0C0";
                 }
             });
             grid.addEventListener('mouseout', (e) => {
-                if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c) == "") {                    
+                if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c) == "" && !gameRunner.checkResult()) {                    
                     e.target.textContent = "";
                     e.target.style['color'] = "black";
                 }
             });
             // Run game logic to each grid unit
             grid.addEventListener('click',(e) => {
-                gridPressedGameLogic(e.target);
+                if (!gameRunner.checkResult()) gridPressedGameLogic(e.target);
             });
         });
     };
@@ -448,15 +448,17 @@ const displayGame = (() => {
             gameboard.appendChild(gridUnit);
         };
     };
-    
 
+    // Delay function
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+    
     /**
      * Main game logic function to be run on click of a grid depending on _m, and player active states
      * If grid already not selected, Set grid to clicked player's marker and update player active states,
      * If _m > -1, set AI to make next move depending on difficulty
      * @param {e} grid - event of grid clicked
      */
-    function gridPressedGameLogic(grid) {
+    async function gridPressedGameLogic(grid) {
 
         const modal = document.querySelector(".result");
         const result = document.querySelector(".result-text");
@@ -539,6 +541,7 @@ const displayGame = (() => {
             if (gameRunner.checkResult() == 2) {
                 console.log("Tie");
 
+                await delay(1000);
                 modal.showModal();
                 modal.classList.add("result-displayed");
                 result.textContent = "It's a tie!";
@@ -546,6 +549,7 @@ const displayGame = (() => {
             else {
                 console.log(`${gameRunner.checkResult()} wins`);
 
+                await delay(1000);
                 modal.showModal();
                 modal.classList.add("result-displayed");
                 result.textContent = `${gameRunner.checkResult()} wins`;
@@ -667,6 +671,7 @@ const displayGame = (() => {
     return {
             startGame,
 
+            delay,
             gridPressedGameLogic,
         
             displayGrids,

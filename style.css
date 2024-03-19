@@ -68,11 +68,6 @@ img {
     text-transform: uppercase;
 }
 
-/* Result */
-dialog::backdrop {
-    background: rgb(255,255,255,0.6);
-  }
-
 /* Gameboard Grid */
 .content {
     width: 100%;
@@ -119,7 +114,6 @@ dialog::backdrop {
     top: 0px;
     left: 0px;
 }
-
 
 
 /* Gameboard grid container */
@@ -199,8 +193,8 @@ dialog::backdrop {
 
 /* Result Modal Styling */
 .result {
-    width: 50%;
-    height: 50vh;
+    width: 40%;
+    height: 30vh;
 }
 
 /* result modal flex to be run only when displayed */
