@@ -194,6 +194,11 @@ const gameRunner = (() => {
     _player1.setActive(true);
     _player2.setActive(false);
 
+    function getActivePlayer() {
+        if (getPlayer1().getActive() && !getPlayer2().getActive()) return getPlayer1();
+        if (getPlayer2().getActive() && !getPlayer1().getActive()) return getPlayer2();
+    }
+
     function getPlayer1() { return _player1 };
     function getPlayer2() { return _player2 };
 
@@ -366,6 +371,7 @@ const gameRunner = (() => {
     };
 
     return {
+            getActivePlayer,
             getPlayer1,
             getPlayer2,
             getGameboard,
@@ -402,14 +408,24 @@ const displayGame = (() => {
         displayGrids();
         let htmlgrids = document.querySelectorAll(".grid-unit");
 
-        // Run game logic to each grid unit
         htmlgrids.forEach( (grid) => {
+            grid.addEventListener('mouseover', (e) => {
+                if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c) == "") {
+                    e.target.textContent = gameRunner.getActivePlayer().getMarker();
+                    e.target.style['color'] = "#C0C0C0";
+                }
+            });
+            grid.addEventListener('mouseout', (e) => {
+                if (gameRunner.getGameboard().getGrid(convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c) == "") {                    
+                    e.target.textContent = "";
+                    e.target.style['color'] = "black";
+                }
+            });
+            // Run game logic to each grid unit
             grid.addEventListener('click',(e) => {
                 gridPressedGameLogic(e.target);
-                
             });
-            
-        });  
+        });
     };
 
     // Display n by n grid 
@@ -426,7 +442,7 @@ const displayGame = (() => {
             gridUnit.style.width = `${100/_n}%`;
             gridUnit.style.height = `${100/_n}%`;
             gridUnit.style.flex = 'auto';
-            gridUnit.style['outline'] = '3px solid';
+            gridUnit.style['outline'] = '3px solid black';
             
     
             gameboard.appendChild(gridUnit);
@@ -457,6 +473,7 @@ const displayGame = (() => {
                 if (_m == -1) { // PvP Gamemode
                     gameRunner.stepPlayer(gameRunner.getPlayer1(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
                     grid.textContent = 'X';
+                    grid.style['color'] = "black";
                     
                     gameRunner.getPlayer1().setActive(false);
                     gameRunner.getPlayer2().setActive(true);
@@ -466,6 +483,7 @@ const displayGame = (() => {
                 else if (_m > -1) { // Random AI with _m determining difficulty percentage
                     gameRunner.stepPlayer(gameRunner.getPlayer1(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
                     grid.textContent = 'X';
+                    grid.style['color'] = "black";
 
                     let AIStep = gameRunner.aiStepIdx('O',_m * 0.25);
 
@@ -486,6 +504,7 @@ const displayGame = (() => {
                 if (_m == -1) { // PvP Gamemode
                     gameRunner.stepPlayer(gameRunner.getPlayer2(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
                     grid.textContent = 'O';
+                    grid.style['color'] = "black";
 
                     gameRunner.getPlayer2().setActive(false);
                     gameRunner.getPlayer1().setActive(true);
@@ -496,6 +515,7 @@ const displayGame = (() => {
                 else if (_m > -1) { // Random AI with _m determining difficulty percentage
                     gameRunner.stepPlayer(gameRunner.getPlayer2(),convertIdxtoRC(grid.id).r,convertIdxtoRC(grid.id).c);
                     grid.textContent = 'O';
+                    grid.style['color'] = "black";
 
                     let AIStep = gameRunner.aiStepIdx('X',_m * 0.25);
 

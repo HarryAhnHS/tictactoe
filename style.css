@@ -55,9 +55,9 @@ img {
     border-bottom: 1.5px solid black;
 
     background-color: transparent;
-
-
-    
+}
+.mode-dropdown > select:focus {
+    outline: none;
 }
 
 .content {
@@ -101,6 +101,7 @@ dialog::backdrop {
     text-decoration: none;
     text-transform: uppercase;
     color: #000;
+    background-color: white;
     cursor: pointer;
     border: 3px solid;
     padding: 0.25em 0.5em;
@@ -142,11 +143,7 @@ dialog::backdrop {
     justify-content: center;
     align-items: center;
 
-}
-
-
-
-.grid-unit:hover, .grid-unit:focus  {
+    position: relative;
 
 }
 
