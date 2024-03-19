@@ -132,6 +132,8 @@ img {
     background-color: white;
 
     font-size: 32px;
+    flex: auto;
+    outline: 3px solid black;
     
     display: flex;
     justify-content: center;
@@ -193,7 +195,6 @@ img {
 
 /* Result Modal Styling */
 .result {
-    width: 40%;
     height: 30vh;
 }
 

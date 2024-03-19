@@ -5,9 +5,16 @@ function gameboard(n) {
     
     var _gridArr = []; // 2D Array to hold game
 
+    var _winningGrids = []; // Winning grid holder
+
     // Getter function for n
     function getN() {
         return n;
+    }
+
+    // Getter for winning grids
+    function getWinningGrids() {
+        return _winningGrids;
     }
 
     //Initialize grid as 2D array filled with ""
@@ -88,8 +95,10 @@ function gameboard(n) {
     function checkColWinner() {
         for (r = 0; r < n; r++) {
             let cols = [];
+            _winningGrids = [];
             for (c = 0; c < n; c++) {
                 cols.push(_gridArr[r][c]);
+                _winningGrids.push({r,c});
             }
             if (cols.every((val) => val == 'X')) return 'X';
             if (cols.every((val) => val == 'O')) return 'O';
@@ -100,8 +109,10 @@ function gameboard(n) {
     function checkRowWinner() {
         for (c = 0; c < n; c++) {
             let rows = [];
+            _winningGrids = [];
             for (r = 0; r < n; r++) {
                 rows.push(_gridArr[r][c]);
+                _winningGrids.push({r,c});
             }
             if (rows.every((val) => val =='X')) return 'X';
             if (rows.every((val) => val == 'O')) return 'O';
@@ -112,8 +123,10 @@ function gameboard(n) {
 
     function checkDiagWinnerTLBR() {
         let check = [];
+        _winningGrids = [];
         for (r = 0; r < n; r++) {
             check.push(_gridArr[r][r]);
+            _winningGrids.push({r,c:r});
         }
         if (check.every((val) => val == 'X')) return 'X';
         if (check.every((val) => val == 'O')) return 'O';
@@ -123,8 +136,10 @@ function gameboard(n) {
 
     function checkDiagWinnerTRBL() {
         let check = [];
+        _winningGrids = [];
         for (r = 0; r < n; r++) {
             check.push(_gridArr[r][n-r-1]);
+            _winningGrids.push({r,c:n-r-1});
         }
 
         if (check.every((val) => val == 'X')) return 'X';
@@ -153,6 +168,7 @@ function gameboard(n) {
 
     return {grids,
             getN,
+            getWinningGrids,
             createGrids, 
             setGrid, 
             getGrid, 
@@ -237,7 +253,7 @@ const gameRunner = (() => {
 
         return 0;
     }
-
+ 
     /**
      * Each round of play, update _game's _gameArr with player's marker at index r,c
      * @param {player} player - player object making current step 
@@ -441,13 +457,26 @@ const displayGame = (() => {
     
             gridUnit.style.width = `${100/_n}%`;
             gridUnit.style.height = `${100/_n}%`;
-            gridUnit.style.flex = 'auto';
-            gridUnit.style['outline'] = '3px solid black';
             
     
             gameboard.appendChild(gridUnit);
         };
     };
+
+    // Function to differentiate and display the winning grids 
+    function displayWinningGrids() {
+        let win = gameRunner.getGameboard().getWinningGrids();
+        console.log(win);
+        let htmlgrids = document.querySelectorAll(".grid-unit");
+
+        for (let i = 0; i < _n; i++) {
+            htmlgrids.forEach((grid) => {
+                if (grid.id == convertRCtoIdx(win[i].r,win[i].c)) {
+                    grid.style['background-color'] = '#b5e48c';
+                }
+            }) 
+        }
+    }
 
     // Delay function
     const delay = ms => new Promise(res => setTimeout(res, ms));
@@ -537,7 +566,7 @@ const displayGame = (() => {
         
 
         // Check for winner after each step, if result exists pop modal and stop game until restarteds
-        if (gameRunner.checkResult() != 0) {
+        if (gameRunner.checkResult()) {
             if (gameRunner.checkResult() == 2) {
                 console.log("Tie");
 
@@ -548,6 +577,7 @@ const displayGame = (() => {
             }
             else {
                 console.log(`${gameRunner.checkResult()} wins`);
+                displayWinningGrids();
 
                 await delay(1000);
                 modal.showModal();
@@ -674,6 +704,7 @@ const displayGame = (() => {
             delay,
             gridPressedGameLogic,
         
+            displayWinningGrids,
             displayGrids,
             displayGridStep,
 
