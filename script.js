@@ -448,6 +448,7 @@ const displayGame = (() => {
             gameboard.appendChild(gridUnit);
         };
     };
+    
 
     /**
      * Main game logic function to be run on click of a grid depending on _m, and player active states
@@ -603,12 +604,18 @@ const displayGame = (() => {
 
     // Set gamemode based on input module
     const setMode = (() => {
+        const headText = document.getElementById('head-text');
         const mode = document.querySelector("#game-mode");
         mode.addEventListener('change', (e) => {
-            _m = parseInt(e.target.value);
-            
+            _m = parseInt(e.target.value); 
             // Reset Game            
             startGame();
+            if (_m > -1) {
+                headText.textContent = 'Choose your player';
+            }
+            else {
+                headText.textContent = '';
+            }
         });
     })();
 
