@@ -9,47 +9,51 @@
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
 
-    <!-- Font - 'Inria Sans' -->
+    <!-- Font - 'Slackside One' -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Slackside+One&display=swap" rel="stylesheet">
 </head>
 
 <body>
     <dialog class="result">
         <div class="result-text"></div>
-        <button id="restart">Restart</button>
+        <button class="restart">Play Again</button>
     </dialog>
 
     <div class="header">
-        <div class="modes-input">
-            <div class="mode-dropdown">
-                <label for="game-mode">Select Game Mode:</label> 
-                <select name="mode" id="game-mode"> 
-                    <option value="-1">P vs. P</option> 
-                    <option value="0">Random AI</option> 
-                    <option value="1">Easy AI</option> 
-                    <option value="2">Medium AI</option> 
-                    <option value="3">Hard AI</option> 
-                    <option value="4">Impossible AI</option> 
-                </select>
-            </div>
-        </div>
-        <div class="num-grids-input">
+        <div class="mode-dropdown">
+            <label for="game-mode">Select Game Mode:</label> 
+            <select name="mode" id="game-mode"> 
+                <option value="-1">P vs. P</option> 
+                <option value="0">Random AI</option> 
+                <option value="1">Easy AI</option> 
+                <option value="2">Medium AI</option> 
+                <option value="3">Hard AI</option> 
+                <option value="4">Impossible AI</option> 
+            </select>
         </div>
     </div>
     <div class="content">
+        <p>Choose your player</p>
         <div class="gameboard-head">
-            <div class="head-x player-active">
+            <button class="head-x player-active">
                 X
-            </div>
-            <div class="head-o">
+            </button>
+            <button class="head-o">
                 O
-            </div>
+            </button>
         </div>
+
         <div class="gameboard">
             
         </div>
+        <div class="restart-wrapper">
+            <button class="restart">
+                Restart
+            </button>   
+        </div>
+ 
     </div>
     <div class="footer">
         &copy; Copyright by @HarryAhnHS 

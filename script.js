@@ -273,8 +273,6 @@ const gameRunner = (() => {
                 }
             }
             console.log(bestMove);
-            console.log(marker);
-            console.log(percentage);
             return bestMove;
         }
         else { // Randomized option
@@ -287,6 +285,8 @@ const gameRunner = (() => {
                     }
                 }
             }
+
+            console.log(`Randomized move`)
 
             return empty[Math.floor(Math.random()*empty.length)];
         }
@@ -404,7 +404,11 @@ const displayGame = (() => {
 
         // Run game logic to each grid unit
         htmlgrids.forEach( (grid) => {
-            grid.addEventListener('click',(e) => gridPressedGameLogic(e.target));
+            grid.addEventListener('click',(e) => {
+                gridPressedGameLogic(e.target);
+                
+            });
+            
         });  
     };
 
@@ -422,7 +426,8 @@ const displayGame = (() => {
             gridUnit.style.width = `${100/_n}%`;
             gridUnit.style.height = `${100/_n}%`;
             gridUnit.style.flex = 'auto';
-            gridUnit.style['outline'] = '1px solid black';
+            gridUnit.style['outline'] = '3px solid';
+            
     
             gameboard.appendChild(gridUnit);
         };
@@ -442,8 +447,8 @@ const displayGame = (() => {
         const headx = document.querySelector(".head-x");
         const heado = document.querySelector(".head-o");
 
-        console.log(gameRunner.getPlayer1().getActive());
-        console.log(gameRunner.getPlayer2().getActive());
+        // console.log(gameRunner.getPlayer1().getActive());
+        // console.log(gameRunner.getPlayer2().getActive());
         
         if (gameRunner.getPlayer1().getActive()) {
             // Player 1 ('X') is active, and grid is clicked
@@ -510,17 +515,18 @@ const displayGame = (() => {
 
         // Check for winner after each step, if result exists pop modal and stop game until restarteds
         if (gameRunner.checkResult() != 0) {
-            console.log("Reached here");
             if (gameRunner.checkResult() == 2) {
                 console.log("Tie");
 
                 modal.showModal();
-                result.textContent = "It's a tie."
+                modal.classList.add("result-displayed");
+                result.textContent = "It's a tie!";
             }
             else {
                 console.log(`${gameRunner.checkResult()} wins`);
 
                 modal.showModal();
+                modal.classList.add("result-displayed");
                 result.textContent = `${gameRunner.checkResult()} wins`;
             }
         }
@@ -558,15 +564,18 @@ const displayGame = (() => {
 
     // Module to run if restart button is clicked in game over modal
     const restartGame = (() => {
-        const restart = document.querySelector("#restart");
+        const restart = document.querySelectorAll(".restart");
         
-        restart.addEventListener('click', ()=> {
+        restart.forEach( (btn) => {
+            btn.addEventListener('click', ()=> {
 
-            const modal = document.querySelector(".result");
-            // Call the built-in 'close' method to close the modal
-            modal.close();
-
-            startGame();
+                const modal = document.querySelector(".result");
+                // Call the built-in 'close' method to close the modal
+                modal.close();
+                modal.classList.remove("result-displayed");
+    
+                startGame();
+            })
         })
     })();
 
@@ -583,6 +592,7 @@ const displayGame = (() => {
         });
     })();
 
+    // Module tracking click of headx and heado
     // Allow ability to Switch player if vs. AI
     const changePlayer = (() => {
         
@@ -638,6 +648,7 @@ const displayGame = (() => {
             restartGame,
             
             convertIdxtoRC,
+            convertRCtoIdx,
             setMode,
             changePlayer,
             
