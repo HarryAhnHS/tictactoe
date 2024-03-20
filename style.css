@@ -131,7 +131,7 @@ img {
 .grid-unit {
     background-color: white;
 
-    font-size: 32px;
+    font-size: 36px;
     flex: auto;
     outline: 3px solid black;
     
@@ -140,6 +140,8 @@ img {
     align-items: center;
 
     position: relative;
+
+    cursor: pointer;
 
 }
 
@@ -194,8 +196,15 @@ img {
 }
 
 /* Result Modal Styling */
+dialog::backdrop {
+    opacity: 0.9;
+}
+
 .result {
-    height: 30vh;
+    width: 50%;
+    height: 50vh;
+
+    border: 3px solid black;
 }
 
 /* result modal flex to be run only when displayed */
@@ -209,7 +218,7 @@ img {
 
 .result-text {
     margin-bottom: 30px;
-    font-size: 36px;
+    font-size: 42px;
 }
 
 /* Footer */

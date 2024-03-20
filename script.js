@@ -648,7 +648,7 @@ const displayGame = (() => {
                 headText.textContent = 'Choose your player';
             }
             else {
-                headText.textContent = '';
+                headText.textContent = 'Fight!';
             }
         });
     })();
