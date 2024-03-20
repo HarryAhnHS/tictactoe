@@ -85,6 +85,8 @@ img {
     align-items: center;
 
     padding-bottom: 15px;
+
+    transition: all 0.3s;
 }
 
 /* Head X and O Button Styling */
@@ -120,7 +122,7 @@ img {
 .gameboard {
     display: flex;
     /* border: 3px solid #e63946; */
-    transition: 0.3s;
+    transition: all 0.3s;
     flex-wrap: wrap;
     height: 500px;
     width: 500px;
@@ -169,11 +171,11 @@ img {
   border-width: 2px;
   box-shadow: rgba(0, 0, 0, .2) 15px 28px 25px -18px;
   box-sizing: border-box;
-  color: #41403e;
+  color: black;
   cursor: pointer;
   display: inline-block;
   font-family: 'Slackside One', sans-serif;
-  font-size: 1rem;
+  font-size: 1.1rem;
   line-height: 23px;
   outline: none;
   padding: .75rem;
@@ -255,3 +257,15 @@ dialog::backdrop {
 }
 
 
+/* Mobile Responsiveness */
+@media only screen and (max-width: 550px) {
+    .gameboard-head {
+        width: 300px;
+    }
+
+    .gameboard {
+        width: 300px;
+        height: 300px;
+    }
+    
+}
