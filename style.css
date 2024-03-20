@@ -206,7 +206,7 @@ dialog::backdrop {
 
 .result {
     width: 50%;
-    height: 50vh;
+    height: 3cm;
 
     border: 3px solid black;
 }
@@ -266,6 +266,10 @@ dialog::backdrop {
     .gameboard {
         width: 300px;
         height: 300px;
+    }
+    
+    .grid-unit {
+        font-size: 26px;
     }
     
 }
