@@ -206,7 +206,7 @@ dialog::backdrop {
 
 .result {
     width: 50%;
-    height: 3cm;
+    height: 30vh;
 
     border: 3px solid black;
 }
